@@ -364,10 +364,15 @@ img{max-width:100%}
       </div>
 
       <!--
-        FORM DELIVERY (Formspree): connected to https://formspree.io/f/xqpkepyw —
-        submissions arrive by email to whatever address owns that Formspree project.
-        The FIRST real submission triggers a one-time confirmation email from Formspree;
-        it must be confirmed there before delivery actually starts.
+        FORM DELIVERY — submits to two places at once, and counts as sent if
+        either succeeds:
+          1. Formspree (https://formspree.io/f/xqpkepyw) — emails the submission
+             to whatever address owns that project. The FIRST real submission
+             triggers a one-time confirmation email from Formspree; it must be
+             confirmed there before delivery actually starts.
+          2. Supabase (project usswlatqatudengfaael) — inserts a permanent row
+             into the `leads` table. The anon key below can only INSERT
+             (Row Level Security policy), never read/edit/delete existing rows.
       -->
       <form id="roadmapForm" data-reveal action="https://formspree.io/f/xqpkepyw" method="POST" style="padding:38px 34px;background:#FBF9F4;border:1px solid var(--ln);border-radius:4px;box-shadow:0 40px 80px -46px rgba(17,20,27,.35)">
         <input type="hidden" name="_subject" value="New roadmap request — Skyroute Aviation">
@@ -413,6 +418,7 @@ img{max-width:100%}
   </footer>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
   var root = document;
@@ -460,9 +466,25 @@ img{max-width:100%}
     });
   }
 
-  // roadmap form — posts to Formspree (see the HTML comment above the <form> to
-  // activate it with a real form ID); falls back to a local demo confirmation
-  // if that hasn't been set up yet, so the page never looks broken.
+  // Supabase — permanent, queryable record of every lead (RLS policy on the
+  // `leads` table allows INSERT only via this public anon key; nobody can
+  // read/edit/delete existing rows with it — that requires logging into
+  // Supabase directly). See README for the table/policy SQL.
+  var sbClient = null;
+  try {
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+      sbClient = window.supabase.createClient(
+        'https://usswlatqatudengfaael.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzc3dsYXRxYXR1ZGVuZ2ZhYWVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNzk1MTAsImV4cCI6MjEwMzc1NTUxMH0.c_lAPXW1cjxLYsgwKTII4gvm5JwaGuhffALx8gIoZho'
+      );
+    }
+  } catch (err) { sbClient = null; }
+
+  // roadmap form — submits to both Supabase (database record) and Formspree
+  // (email notification) at once; counts as delivered if EITHER succeeds, so
+  // one being down doesn't lose the lead. Falls back to a local demo
+  // confirmation if Formspree hasn't been configured, so the page never
+  // looks broken.
   var form = document.getElementById('roadmapForm');
   var submitBtn = document.getElementById('submitBtn');
   var formNote = document.getElementById('formNote');
@@ -470,36 +492,48 @@ img{max-width:100%}
     form.addEventListener('submit', function(e){
       e.preventDefault();
       var action = form.getAttribute('action') || '';
-      if (!action || action.indexOf('YOUR_FORM_ID') !== -1) {
+      var formspreeConfigured = !!action && action.indexOf('YOUR_FORM_ID') === -1;
+
+      if (!formspreeConfigured && !sbClient) {
         state.sent = true;
         submitBtn.textContent = 'Roadmap request sent ✓';
-        formNote.textContent = 'Demo mode — connect a real Formspree form ID (see the comment above this form in the code) to actually deliver this by email.';
+        formNote.textContent = 'Demo mode — connect a real Formspree form ID or Supabase project to actually deliver this.';
         return;
       }
+
       submitBtn.disabled = true;
       submitBtn.textContent = 'Sending…';
-      fetch(action, {
-        method: 'POST',
-        body: new FormData(form),
-        headers: { 'Accept': 'application/json' }
-      }).then(function(res){
-        return res.json().catch(function(){ return {}; }).then(function(data){
-          if (res.ok) {
-            state.sent = true;
-            submitBtn.textContent = 'Roadmap request sent ✓';
-            formNote.textContent = 'Thanks — your roadmap goes out by email, usually within two business days.';
-            return;
-          }
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Send me the roadmap';
-          formNote.textContent = (data.errors && data.errors.length)
-            ? data.errors.map(function(er){ return er.field ? (er.field + ': ' + er.message) : er.message; }).join('; ')
-            : 'Something went wrong sending that — please try again, or reach us on WhatsApp directly.';
-        });
-      }).catch(function(){
+      var formData = new FormData(form);
+
+      var formspreePromise = formspreeConfigured
+        ? fetch(action, { method: 'POST', body: formData, headers: { 'Accept': 'application/json' } })
+            .then(function(res){ return res.json().catch(function(){ return {}; }).then(function(data){ return { ok: res.ok, data: data }; }); })
+            .catch(function(){ return { ok: false, data: {} }; })
+        : Promise.resolve({ ok: false, data: {} });
+
+      var supabasePromise = sbClient
+        ? sbClient.from('leads').insert([{
+            name: formData.get('name'),
+            email: formData.get('email'),
+            phone: formData.get('phone'),
+            city: formData.get('city'),
+            stage: state.stage
+          }]).then(function(res){ return { ok: !res.error }; }).catch(function(){ return { ok: false }; })
+        : Promise.resolve({ ok: false });
+
+      Promise.all([formspreePromise, supabasePromise]).then(function(results){
+        var fs = results[0], sb = results[1];
+        if (fs.ok || sb.ok) {
+          state.sent = true;
+          submitBtn.textContent = 'Roadmap request sent ✓';
+          formNote.textContent = 'Thanks — your roadmap goes out by email, usually within two business days.';
+          return;
+        }
         submitBtn.disabled = false;
         submitBtn.textContent = 'Send me the roadmap';
-        formNote.textContent = 'Something went wrong sending that — please try again, or reach us on WhatsApp directly.';
+        formNote.textContent = (fs.data && fs.data.errors && fs.data.errors.length)
+          ? fs.data.errors.map(function(er){ return er.field ? (er.field + ': ' + er.message) : er.message; }).join('; ')
+          : 'Something went wrong sending that — please try again, or reach us on WhatsApp directly.';
       });
     });
   }
