@@ -32,17 +32,36 @@ img{max-width:100%}
 .btn-hero-primary:hover{box-shadow:0 5px 0 -2px #A96305,0 22px 40px -20px rgba(169,99,5,.75)}
 .btn-hero-secondary:hover{background:var(--ink);color:#F5F3ED}
 .field:focus{border-color:var(--am)}
+
+/* mobile nav */
+.nav-toggle{display:none;flex:none;width:36px;height:36px;padding:0;border:none;background:none;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.nav-toggle span{display:block;width:22px;height:2px;background:var(--ink);transition:transform .25s,opacity .25s}
+.nav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.nav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+.nav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.nav-mobile{position:fixed;top:65px;left:0;right:0;z-index:899;flex-direction:column;background:#F5F3ED;border-bottom:1px solid var(--ln);padding:6px 26px 18px;max-height:calc(100svh - 65px);overflow-y:auto}
+.nav-mobile:not([hidden]){display:flex}
+.nav-mobile a{padding:14px 0;border-bottom:1px solid var(--ln);font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
+.nav-mobile a:last-child{border-bottom:none;color:var(--ink)}
+@media (max-width:860px){
+  .nav-links{display:none!important}
+  .nav-toggle{display:flex}
+}
+@media (max-width:480px){
+  .rate-row{grid-template-columns:46px 1fr!important;row-gap:10px}
+  .rate-row [data-rate-meta]{grid-column:1/-1;margin-left:64px;justify-self:start}
+}
 </style>
 </head>
 <body>
 <div style="position:relative">
 
   <header style="position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 26px;background:rgba(245,243,237,.86);backdrop-filter:blur(14px);border-bottom:1px solid var(--ln)">
-    <a href="#top" style="display:flex;align-items:center;gap:11px">
+    <a href="#top" style="display:flex;align-items:center;gap:11px;flex:none">
       <span style="display:grid;place-items:center;width:32px;height:32px;border:1.5px solid var(--am);border-radius:50%;font:500 10px/1 'IBM Plex Mono',monospace;color:var(--am)">SR</span>
       <span style="font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:18px;letter-spacing:.05em;text-transform:uppercase">Skyroute Aviation</span>
     </a>
-    <div style="display:flex;align-items:center;gap:20px">
+    <div class="nav-links" style="display:flex;align-items:center;gap:20px">
       <a href="#services" data-nav style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)">Services</a>
       <a href="#chino" data-nav style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)">Where you fly</a>
       <a href="#ratings" data-nav style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)">Ratings</a>
@@ -50,7 +69,18 @@ img{max-width:100%}
       <a href="#reviews" data-nav style="font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)">Reviews</a>
       <a href="#book" data-mag class="btn-nav-cta" style="padding:11px 18px;background:var(--ink);color:#F5F3ED;border-radius:2px;font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;transition:transform .35s cubic-bezier(.2,.7,.2,1),background .3s,color .3s">Free counselling</a>
     </div>
+    <button type="button" class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="navMobile">
+      <span></span><span></span><span></span>
+    </button>
   </header>
+  <nav class="nav-mobile" id="navMobile" hidden aria-label="Mobile">
+    <a href="#services" data-nav>Services</a>
+    <a href="#chino" data-nav>Where you fly</a>
+    <a href="#ratings" data-nav>Ratings</a>
+    <a href="#dgca" data-nav>DGCA pathway</a>
+    <a href="#reviews" data-nav>Reviews</a>
+    <a href="#book" style="color:var(--am)">Free counselling &#8594;</a>
+  </nav>
 
   <section id="top" style="position:relative;min-height:100svh;overflow:hidden;display:grid;place-items:center;perspective:1100px;perspective-origin:50% 46%">
     <div style="position:absolute;inset:0;background:radial-gradient(120% 80% at 50% 8%,#FFFFFF 0%,#F5F3ED 46%,#E8E4DA 100%)"></div>
@@ -187,24 +217,24 @@ img{max-width:100%}
         <div style="display:grid;grid-template-columns:46px 1fr auto;gap:18px;padding:15px 22px 15px 18px;background:var(--ink);color:#F5F3ED;font:500 11px/1 'IBM Plex Mono',monospace;letter-spacing:.2em">
           <span>NO.</span><span>RATING</span><span>DETAIL</span>
         </div>
-        <button type="button" data-rate="0" style="display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:18px;width:100%;padding:26px 22px 26px 18px;background:none;border:none;border-bottom:1px solid var(--ln);border-left:3px solid transparent;color:var(--ink);text-align:left;cursor:pointer;transition:background .35s,border-color .35s,padding-left .35s">
+        <button type="button" data-rate="0" class="rate-row" style="display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:18px;width:100%;padding:26px 22px 26px 18px;background:none;border:none;border-bottom:1px solid var(--ln);border-left:3px solid transparent;color:var(--ink);text-align:left;cursor:pointer;transition:background .35s,border-color .35s,padding-left .35s">
           <span data-rate-num style="font:500 13px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;color:var(--am)">01</span>
-          <span data-rate-name style="font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:clamp(32px,3.8vw,48px);text-transform:uppercase;line-height:.9">PPL</span>
+          <span data-rate-name style="font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:clamp(32px,3.8vw,48px);text-transform:uppercase;line-height:.9;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">PPL</span>
           <span data-rate-meta style="padding:8px 11px;border:1px solid var(--ln);border-radius:2px;font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;color:var(--mu);white-space:nowrap;transition:all .35s">40 HRS MIN</span>
         </button>
-        <button type="button" data-rate="1" style="display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:18px;width:100%;padding:26px 22px 26px 18px;background:none;border:none;border-bottom:1px solid var(--ln);border-left:3px solid transparent;color:var(--ink);text-align:left;cursor:pointer;transition:background .35s,border-color .35s,padding-left .35s">
+        <button type="button" data-rate="1" class="rate-row" style="display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:18px;width:100%;padding:26px 22px 26px 18px;background:none;border:none;border-bottom:1px solid var(--ln);border-left:3px solid transparent;color:var(--ink);text-align:left;cursor:pointer;transition:background .35s,border-color .35s,padding-left .35s">
           <span data-rate-num style="font:500 13px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;color:var(--am)">02</span>
-          <span data-rate-name style="font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:clamp(32px,3.8vw,48px);text-transform:uppercase;line-height:.9">Instrument</span>
+          <span data-rate-name style="font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:clamp(32px,3.8vw,48px);text-transform:uppercase;line-height:.9;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">Instrument</span>
           <span data-rate-meta style="padding:8px 11px;border:1px solid var(--ln);border-radius:2px;font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;color:var(--mu);white-space:nowrap;transition:all .35s">40 HRS IFR</span>
         </button>
-        <button type="button" data-rate="2" style="display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:18px;width:100%;padding:26px 22px 26px 18px;background:none;border:none;border-bottom:1px solid var(--ln);border-left:3px solid transparent;color:var(--ink);text-align:left;cursor:pointer;transition:background .35s,border-color .35s,padding-left .35s">
+        <button type="button" data-rate="2" class="rate-row" style="display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:18px;width:100%;padding:26px 22px 26px 18px;background:none;border:none;border-bottom:1px solid var(--ln);border-left:3px solid transparent;color:var(--ink);text-align:left;cursor:pointer;transition:background .35s,border-color .35s,padding-left .35s">
           <span data-rate-num style="font:500 13px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;color:var(--am)">03</span>
-          <span data-rate-name style="font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:clamp(32px,3.8vw,48px);text-transform:uppercase;line-height:.9">CPL</span>
+          <span data-rate-name style="font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:clamp(32px,3.8vw,48px);text-transform:uppercase;line-height:.9;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">CPL</span>
           <span data-rate-meta style="padding:8px 11px;border:1px solid var(--ln);border-radius:2px;font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;color:var(--mu);white-space:nowrap;transition:all .35s">250 HRS TT</span>
         </button>
-        <button type="button" data-rate="3" style="display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:18px;width:100%;padding:26px 22px 26px 18px;background:none;border:none;border-bottom:1px solid var(--ln);border-left:3px solid transparent;color:var(--ink);text-align:left;cursor:pointer;transition:background .35s,border-color .35s,padding-left .35s">
+        <button type="button" data-rate="3" class="rate-row" style="display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:18px;width:100%;padding:26px 22px 26px 18px;background:none;border:none;border-bottom:1px solid var(--ln);border-left:3px solid transparent;color:var(--ink);text-align:left;cursor:pointer;transition:background .35s,border-color .35s,padding-left .35s">
           <span data-rate-num style="font:500 13px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;color:var(--am)">04</span>
-          <span data-rate-name style="font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:clamp(32px,3.8vw,48px);text-transform:uppercase;line-height:.9">Multi-engine</span>
+          <span data-rate-name style="font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:clamp(32px,3.8vw,48px);text-transform:uppercase;line-height:.9;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">Multi-engine</span>
           <span data-rate-meta style="padding:8px 11px;border:1px solid var(--ln);border-radius:2px;font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;color:var(--mu);white-space:nowrap;transition:all .35s">10 HRS ME</span>
         </button>
         <p style="margin-top:16px;font:400 10px/1.6 'IBM Plex Mono',monospace;letter-spacing:.1em;color:rgba(17,20,27,.62)">HOVER OR TAB A ROW &middot; AUTO-CYCLES UNTIL YOU DO</p>
@@ -510,6 +540,19 @@ img{max-width:100%}
     a.addEventListener('mouseenter', function(){ a.style.color = '#11141B'; });
     a.addEventListener('mouseleave', function(){ a.style.color = 'rgba(17,20,27,.68)'; });
   });
+
+  // mobile nav toggle
+  var navToggle = root.querySelector('.nav-toggle');
+  var navMobile = document.getElementById('navMobile');
+  if (navToggle && navMobile) {
+    var closeNav = function(){ navMobile.setAttribute('hidden', ''); navToggle.setAttribute('aria-expanded', 'false'); };
+    var openNav = function(){ navMobile.removeAttribute('hidden'); navToggle.setAttribute('aria-expanded', 'true'); };
+    navToggle.addEventListener('click', function(){
+      if (navMobile.hasAttribute('hidden')) openNav(); else closeNav();
+    });
+    navMobile.querySelectorAll('a').forEach(function(a){ a.addEventListener('click', closeNav); });
+    window.addEventListener('resize', function(){ if (window.innerWidth > 860) closeNav(); });
+  }
 
   // in-page nav: drive scrolling from JS directly (belt-and-suspenders — some
   // embedded/preview viewers don't reliably follow a bare #hash anchor).
