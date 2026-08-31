@@ -369,7 +369,7 @@ img{max-width:100%}
               <input class="field" name="email" type="email" required placeholder="you@email.com" style="padding:14px;background:#fff;border:1px solid var(--ln);color:var(--ink);font-size:15px;border-radius:2px;outline:none">
             </label>
             <label style="display:flex;flex-direction:column;gap:8px;font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;color:var(--mu)">WHATSAPP
-              <input class="field" name="phone" type="tel" required placeholder="+91 00000 00000" style="padding:14px;background:#fff;border:1px solid var(--ln);color:var(--ink);font-size:15px;border-radius:2px;outline:none">
+              <input class="field" name="phone" type="tel" inputmode="tel" pattern="\+?[0-9\s]+" required placeholder="+91 00000 00000" style="padding:14px;background:#fff;border:1px solid var(--ln);color:var(--ink);font-size:15px;border-radius:2px;outline:none">
             </label>
           </div>
           <label style="display:flex;flex-direction:column;gap:8px;font:500 10px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;color:var(--mu)">CITY
@@ -432,6 +432,21 @@ img{max-width:100%}
     b.addEventListener('click', function(){ state.stage = b.dataset.seg; syncSegs(); });
   });
   syncSegs();
+
+  // WhatsApp number field — only digits, spaces, and a single leading "+" for
+  // the country code; anything else typed or pasted is stripped live.
+  var phoneInput = document.querySelector('input[name="phone"]');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', function(){
+      var v = phoneInput.value;
+      var cleaned = v.replace(/[^\d+\s]/g, '').replace(/(?!^)\+/g, '');
+      if (cleaned !== v) {
+        var pos = phoneInput.selectionStart - (v.length - cleaned.length);
+        phoneInput.value = cleaned;
+        if (typeof pos === 'number' && pos >= 0) phoneInput.setSelectionRange(pos, pos);
+      }
+    });
+  }
 
   // roadmap form — posts to Formspree (see the HTML comment above the <form> to
   // activate it with a real form ID); falls back to a local demo confirmation
