@@ -23,6 +23,12 @@ img{max-width:100%}
 @keyframes gridrun{from{transform:translate3d(-50%,0,0) rotateX(72deg) translateY(0)}to{transform:translate3d(-50%,0,0) rotateX(72deg) translateY(120px)}}
 @keyframes float1{0%{transform:translate3d(0,0,0)}100%{transform:translate3d(0,-16px,0)}}
 @keyframes cue{0%{transform:translateY(0);opacity:0}40%{opacity:1}100%{transform:translateY(14px);opacity:0}}
+@keyframes drawstroke{to{stroke-dashoffset:0}}
+@keyframes popin{from{opacity:0;transform:scale(.92) translateY(6px)}to{opacity:1;transform:none}}
+#formBody.is-sending{opacity:.55;transform:scale(.99)}
+#formSuccess:not([hidden]){animation:popin .4s cubic-bezier(.2,.7,.2,1)}
+#formSuccess:not([hidden]) #successCircle{animation:drawstroke .6s ease forwards}
+#formSuccess:not([hidden]) #successCheck{animation:drawstroke .35s ease .55s forwards}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 
 
@@ -376,6 +382,7 @@ img{max-width:100%}
       -->
       <form id="roadmapForm" data-reveal action="https://formspree.io/f/xqpkepyw" method="POST" style="padding:38px 34px;background:#FBF9F4;border:1px solid var(--ln);border-radius:4px;box-shadow:0 40px 80px -46px rgba(17,20,27,.35)">
         <input type="hidden" name="_subject" value="New roadmap request — Skyroute Aviation">
+        <div id="formBody" style="transition:opacity .35s ease,transform .35s ease">
         <h3 style="font-size:30px">Request the roadmap</h3>
         <p style="margin-top:8px;font-size:14px;line-height:1.5;color:var(--mu)">One counsellor reads every enquiry. No call centre.</p>
         <div style="display:flex;flex-direction:column;gap:15px;margin-top:26px">
@@ -403,6 +410,15 @@ img{max-width:100%}
           </div>
           <button type="submit" id="submitBtn" data-mag style="margin-top:8px;padding:19px;background:var(--am);border:none;color:#11141B;font:500 12px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;cursor:pointer;border-radius:2px;box-shadow:0 8px 0 -2px #A96305;transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s">Send me the roadmap</button>
           <p id="formNote" style="font:400 11px/1.6 'IBM Plex Mono',monospace;color:rgba(17,20,27,.62)">We reply by email, usually within two business days.</p>
+        </div>
+        </div>
+        <div id="formSuccess" hidden style="text-align:center;padding:20px 0">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style="display:block;margin:0 auto 22px">
+            <circle id="successCircle" cx="32" cy="32" r="29" stroke="var(--am)" stroke-width="3" style="stroke-dasharray:183;stroke-dashoffset:183"></circle>
+            <path id="successCheck" d="M20 33L28 41L45 23" stroke="var(--am)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:40;stroke-dashoffset:40"></path>
+          </svg>
+          <h3 style="font-size:30px">Request sent</h3>
+          <p style="margin-top:10px;font-size:14px;line-height:1.6;color:var(--mu)">We reply by email, usually within two business days.</p>
         </div>
       </form>
     </div>
@@ -488,6 +504,19 @@ img{max-width:100%}
   var form = document.getElementById('roadmapForm');
   var submitBtn = document.getElementById('submitBtn');
   var formNote = document.getElementById('formNote');
+  var formBody = document.getElementById('formBody');
+  var formSuccess = document.getElementById('formSuccess');
+  var noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function revealFormSuccess(){
+    if (!formBody || !formSuccess) return;
+    var doReveal = function(){ formBody.hidden = true; formSuccess.hidden = false; };
+    if (noMotion) { doReveal(); return; }
+    formBody.style.opacity = '0';
+    formBody.style.transform = 'translateY(-8px) scale(.98)';
+    setTimeout(doReveal, 340);
+  }
+
   if (form) {
     form.addEventListener('submit', function(e){
       e.preventDefault();
@@ -496,13 +525,13 @@ img{max-width:100%}
 
       if (!formspreeConfigured && !sbClient) {
         state.sent = true;
-        submitBtn.textContent = 'Roadmap request sent ✓';
-        formNote.textContent = 'Demo mode — connect a real Formspree form ID or Supabase project to actually deliver this.';
+        revealFormSuccess();
         return;
       }
 
       submitBtn.disabled = true;
       submitBtn.textContent = 'Sending…';
+      if (formBody) formBody.classList.add('is-sending');
       var formData = new FormData(form);
 
       var formspreePromise = formspreeConfigured
@@ -523,10 +552,10 @@ img{max-width:100%}
 
       Promise.all([formspreePromise, supabasePromise]).then(function(results){
         var fs = results[0], sb = results[1];
+        if (formBody) formBody.classList.remove('is-sending');
         if (fs.ok || sb.ok) {
           state.sent = true;
-          submitBtn.textContent = 'Roadmap request sent ✓';
-          formNote.textContent = 'Thanks — your roadmap goes out by email, usually within two business days.';
+          revealFormSuccess();
           return;
         }
         submitBtn.disabled = false;
